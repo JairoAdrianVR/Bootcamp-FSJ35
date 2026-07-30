@@ -11,7 +11,7 @@
     <?php include './views/layouts/navbar.php'?>
 
     <main class="container mt-2">
-        <a href="./index.php?action=create" class="btn btn-success">Agregar estudiante</a>
+        <a href="./index.php?action=create" class="btn btn-success">Agregar producto</a>
         <table class="table m-2">
             <thead>
                 <tr>

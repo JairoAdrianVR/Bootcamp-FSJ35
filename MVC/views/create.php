@@ -20,19 +20,11 @@
                 <label class="form-label" for="">Descuento</label>
                 <input class='form-control' type="text" name="descuento">
                 <label class="form-label" for="">Cantidad</label>
-                <select class="form-control" name="cantidad">
-                    <?php foreach($products as $product) { ?>
-                        <option value="<?php echo $product['id']; ?>">
-                            <?php echo $product['nombre']; ?>
-                        </option>
-                    <?php } ?>
-                </select>
+                <input class="form-control" name="cantidad" type="number" />
                 <button class="btn btn-success mt-2" type="submit">Agregar</button>
             </form>
             </article>
         </section>
     </main>
-
-
 </body>
 </html>

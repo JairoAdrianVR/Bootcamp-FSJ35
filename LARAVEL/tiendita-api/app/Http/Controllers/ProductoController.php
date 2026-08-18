@@ -16,7 +16,7 @@ class ProductoController extends Controller
         // producto::all -> es un metodo que ya viene desde el modelo
         // este metodo va a ejecutar el select * from y viene desde Eloquent
         $productos = Producto::all();
-;
+
 
         //echo "holiwis";
         /* retornar la respuesta de eloquent pero antes la vamos a parsear o
@@ -67,20 +67,25 @@ class ProductoController extends Controller
 
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
     {
-        //
+        // buscamos un recurso en especifico
+        $producto = Producto::findOrFail($id); 
+        
+        // actualizar un recurso
+        $producto->update($request->all());
+
+        return response()->json(
+            [
+                'id' => $id,
+                'data-request' => $request->all(),
+                'data-response' => $producto
+            ]
+        );
     }
 
     /**
@@ -88,6 +93,17 @@ class ProductoController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        //buscar el recurso a eliminar
+        $producto = Producto::findOrFail($id); 
+
+        $producto->delete();
+
+        Producto::resetAutoincrement();
+
+        return response()->json(
+            [
+                'mensaje' => 'Producto eliminado correctamente'
+            ]
+        );
     }
 }

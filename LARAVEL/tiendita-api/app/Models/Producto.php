@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Producto extends Model
 {
@@ -10,6 +11,7 @@ class Producto extends Model
     protected $table = 'productos';
    // select * from productos; -> all()
 
+   // desactivamos el created_at y updated_ad
     public $timestamps = false;
 
     //le decimos cuales son las columnas con las que vamos a trabajar
@@ -19,4 +21,8 @@ class Producto extends Model
         'descuento',
         'cantidad'
     ];
+
+    public static function resetAutoincrement(){
+        DB::statement("ALTER TABLE productos AUTO_INCREMENT = 1");
+    }
 }

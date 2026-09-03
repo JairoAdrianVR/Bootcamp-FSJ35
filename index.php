@@ -15,6 +15,7 @@
     // IMPRIMIR DATOS
     echo $variablecita;
 
+
     // Operadores
     // Matematico
     // RESIDUO

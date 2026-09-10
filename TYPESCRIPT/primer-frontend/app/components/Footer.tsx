@@ -1,8 +1,8 @@
 export default function Footer () {
 
     return (
-        <nav>
+        <footer>
             <h2>MI FOOTER HIPER LINDO</h2>
-        </nav>
+        </footer>
     )
 }

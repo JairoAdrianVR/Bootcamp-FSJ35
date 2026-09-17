@@ -5,6 +5,7 @@ import { supabase } from "../repositories/supabase"
 
 export default async function page() {
     //Voy a obtener todos los personajes favoritos
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const {data:favoritos,error} = await supabase.from("favoritos").select("*");
 
   return (
@@ -20,7 +21,7 @@ export default async function page() {
         {favoritos && favoritos.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {favoritos.map((pj) => {
-              return <CardCharacter key={pj.id} id={pj.character_id} nombre={pj.name} imagen={pj.image} estado={pj.status} mostrarBoton={false}/>
+              return <CardCharacter key={pj.id} id={pj.character_id} nombre={pj.name} imagen={pj.image} estado={pj.status} esFavorito={true}/>
             })}
           </div>
         ) : (

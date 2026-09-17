@@ -4,6 +4,7 @@ import CardCharacter from "./components/CardCharacter";
 import Navbar from "./components/Navbar";
 import Navigation from "./components/Navigation";
 import { Character } from "./types";
+import { supabase } from "./repositories/supabase";
 
 interface HomeProps{
   searchParams: Promise<{page?:string}>
@@ -26,6 +27,14 @@ export default async function Home({searchParams}: HomeProps) {
   const personajes = data?.results;
   const totalPaginas = data?.info.pages;
 
+
+  const {data:listFavoritos} = await supabase.from('favoritos').select('character_id')
+  console.log(listFavoritos);
+
+  const idsFavoritos = listFavoritos?.map(favorito => favorito.character_id);
+  console.log(idsFavoritos); //  [ 1, 5, 461, 826, 826 ];
+
+
   return (
     <div className="flex flex-col flex-1 items-center bg-zinc-50 font-sans dark:bg-black min-h-screen">
       {/* INGRESAR UNA NAVBAR (ES UN COMPONENTE NAVBAR) CON: ------------ RETO ------------
@@ -40,7 +49,9 @@ export default async function Home({searchParams}: HomeProps) {
       <Navbar />
       <section className="mt-4 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {personajes.map( (pj:Character) => { 
-            return <CardCharacter key={pj.id} id={pj.id} nombre={pj.name} imagen={pj.image} estado={pj.status}/>
+            const estaGuardado: boolean | null = idsFavoritos?.includes(pj.id);
+
+            return <CardCharacter key={pj.id} id={pj.id} nombre={pj.name} imagen={pj.image} estado={pj.status} esFavorito={estaGuardado}/>
         })}
       </section>
       <Navigation totalPages={totalPaginas} currentPage={currentPage} />

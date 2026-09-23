@@ -1,4 +1,4 @@
-import { ChatSidebar } from "@/features/chat/components/ChatSidebar";
+import { ChatSidebar } from "../features/chat/components/ChatSidebar";
 
 export default function ChatLayout({
   children,
@@ -14,3 +14,6 @@ export default function ChatLayout({
     </main>
   );
 }
+// Route::put("/posts/{id}")
+
+// controller -> param -> id

@@ -1,7 +1,7 @@
-import { ChatHeader } from "../../features/chat/components/ChatHeader"";
-import { MessageList } from "../../features/chat/components/ChatHeader"";
-import { MessageInput } from "@/features/chat/components/MessageInput";
-import { Message, User } from "@/features/chat/types";
+import { ChatHeader } from "../../features/chat/components/ChatHeader";
+import { MessageList } from "../../features/chat/components/MessageBubble";
+import { MessageInput } from "../../features/chat/components/MessageInput";
+import { Message, User } from "../../features/chat/types";
 
 const MOCK_USER: User = {
   id: "u1",

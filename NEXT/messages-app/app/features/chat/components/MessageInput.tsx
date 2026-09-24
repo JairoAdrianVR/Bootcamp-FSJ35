@@ -1,10 +1,30 @@
+"use client";
+
+import { useState } from "react";
+
+
 export function MessageInput() {
+  const [mensaje, setMensaje ] = useState("Holiwis");
+
+    const handleSubmit = (e: React.SubmitEvent) => {
+      e.preventDefault();
+
+
+      console.log("Se ejecuto el handleSubmit");
+      console.log(e.target[0].value);
+      //setMensaje(e.target[0].value);
+    }
+
+    console.log(mensaje);
+    
+
   return (
     <footer className="border-t border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-      <form onSubmit={(e) => e.preventDefault()} className="flex items-center gap-2">
+      <form onSubmit={handleSubmit} className="flex items-center gap-2">
         <input
           type="text"
           placeholder="Escribe un mensaje..."
+          onChange={(e)=>{ setMensaje(e.target.value) }}
           className="flex-1 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:focus:bg-neutral-900"
         />
         <button
@@ -14,6 +34,9 @@ export function MessageInput() {
           Enviar
         </button>
       </form>
+
+      <h2>{mensaje}</h2>
+      <button onClick={() => {setMensaje("Chauchis")}}>Cambiar mensaje</button>
     </footer>
   );
 }

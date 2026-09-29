@@ -7,24 +7,53 @@ export default function RegisterForm() {
     const [formData, setFormData] = useState({
         name: "",
         email: "",
-        password: ""
+        password: "",
+        avatar: null
     });
 
     const [showPassword,setShowPassword] = useState(false);
 
 
-    const [avatarPreview, setAvatarPreview] = useState(null);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     
-    const handleSubmit= () => {
-        //Procesar el submit
+    const handleSubmit= (e: React.SubmitEvent) => {
+        // LO PRIMERO EN UN SUBMIT, ES frenar el comportamiento por defecto
+      e.preventDefault();
+      
+      //Procesar el submit
+        console.log(formData);
+
+        
+        const objData = new FormData();
+        objData.append('name',formData.name);
+
     }
 
-    const handleAvatarChange = () => {
+    const handleAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
         //Procesar en onchange o cambio del avatar
+        console.log(e.target.files?.[0]);
+
+        
+        //if(e.target.type === "file"){
+        const file = e.target.files?.[0];
+
+        if(file){
+        setAvatarPreview(URL.createObjectURL(file))
+        setFormData( (prev) => ({
+          ...prev,
+          [e.target.name]: file
+        })
+      )
+        }
+
+       // }
+
+
+        
     }
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-       console.log(`${e.target.name} su valor es ${e.target.value}`);
+       //console.log(`${e.target.name} su valor es ${e.target.value}`);
         setFormData((prev) => ({
             /*
             inicialmente el prev
@@ -68,6 +97,7 @@ export default function RegisterForm() {
             <input
               type="file"
               accept="image/*"
+              name="avatar"
               onChange={handleAvatarChange}
               className="hidden"
             />

@@ -1,42 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useState, FormEvent, useEffect } from "react";
+
+interface MessageInputProps {
+  onSendMessage: (content: string) => void;
+  disabled?: boolean;
+}
+
+export function MessageInput({ onSendMessage, disabled }: MessageInputProps) {
+  const [content, setContent] = useState("");
+  const [sentOnce, setSentOnce] = useState(false);
 
 
-export function MessageInput() {
-  const [mensaje, setMensaje ] = useState("Holiwis");
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!content.trim() || disabled) return;
+    onSendMessage(content.trim());
+    setContent("");
+    setSentOnce(true); // Se oculta tras el primer envío
+  };
 
-    const handleSubmit = (e: React.SubmitEvent) => {
-      e.preventDefault();
+  useEffect(() => {
+  if (!content) return;
+  const timer = setTimeout(() => {
+    setContent("");
+  }, 2500); // Se borra si tardan más de 3.5 segundos en pensar el mensaje
 
-
-      console.log("Se ejecuto el handleSubmit");
-      console.log(e.target[0].value);
-      //setMensaje(e.target[0].value);
-    }
-
-    console.log(mensaje);
-    
+  return () => clearTimeout(timer);
+}, [content]);
 
   return (
-    <footer className="border-t border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+    <footer className="border-t border-neutral-800 bg-neutral-900 p-4">
       <form onSubmit={handleSubmit} className="flex items-center gap-2">
         <input
           type="text"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
           placeholder="Escribe un mensaje..."
-          onChange={(e)=>{ setMensaje(e.target.value) }}
-          className="flex-1 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:focus:bg-neutral-900"
+          disabled={disabled}
+          className="flex-1 rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-neutral-100 placeholder-neutral-500 focus:border-indigo-500 focus:outline-none disabled:opacity-50"
         />
-        <button
+        {!sentOnce && (<button
           type="submit"
-          className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 dark:focus:ring-offset-neutral-900"
+          disabled={disabled || !content.trim()}
+          className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600 disabled:opacity-50"
         >
           Enviar
-        </button>
+        </button>)}
       </form>
-
-      <h2>{mensaje}</h2>
-      <button onClick={() => {setMensaje("Chauchis")}}>Cambiar mensaje</button>
     </footer>
   );
 }

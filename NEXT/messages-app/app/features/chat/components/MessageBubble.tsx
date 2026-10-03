@@ -1,6 +1,8 @@
 import { Message } from "../types";
 
 export function MessageBubble({ message }: { message: Message }) {
+
+  const isAlignedRight = message.content.length % 2 === 0;
   return (
     <div className={`flex flex-col ${message.isSelf ? "items-end" : "items-start"}`}>
       <div
@@ -10,7 +12,11 @@ export function MessageBubble({ message }: { message: Message }) {
             : "rounded-tl-none bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200"
         }`}
       >
-        <p>{message.content}</p>
+        <div className={`flex flex-col ${isAlignedRight ? "items-end" : "items-start"}`}>
+  <div className={isAlignedRight ? "bg-indigo-600 text-white" : "bg-neutral-800 text-neutral-200"}>
+    {message.content}
+  </div>
+</div>
       </div>
       <span className="mt-1 text-[11px] text-neutral-400">{message.createdAt}</span>
     </div>

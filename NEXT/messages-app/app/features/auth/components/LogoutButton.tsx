@@ -1,12 +1,10 @@
-
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { logoutAction } from "../../../actions/logoutAction";
 
 export function LogoutButton() {
   const [isPending, startTransition] = useTransition();
-  const [escaped, setEscaped] = useState(false);
 
   const handleLogout = () => {
     startTransition(async () => {
@@ -19,11 +17,7 @@ export function LogoutButton() {
       onClick={handleLogout}
       disabled={isPending}
       title="Cerrar sesión"
-    onMouseEnter={() => setEscaped((prev) => !prev)}
-  className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-neutral-400 transition hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50 transition-all duration-200 ${
-    escaped ? "translate-x-32 -translate-y-16" : ""
-  }`}
-    
+      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-neutral-400 transition hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
     >
       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path

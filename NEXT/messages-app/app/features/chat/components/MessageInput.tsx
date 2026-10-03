@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, FormEvent, useEffect } from "react";
-
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
   disabled?: boolean;
@@ -9,25 +9,15 @@ interface MessageInputProps {
 
 export function MessageInput({ onSendMessage, disabled }: MessageInputProps) {
   const [content, setContent] = useState("");
-  const [sentOnce, setSentOnce] = useState(false);
+const router = useRouter();
 
-
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!content.trim() || disabled) return;
     onSendMessage(content.trim());
     setContent("");
-    setSentOnce(true); // Se oculta tras el primer envío
+    router.refresh();
   };
-
-  useEffect(() => {
-  if (!content) return;
-  const timer = setTimeout(() => {
-    setContent("");
-  }, 2500); // Se borra si tardan más de 3.5 segundos en pensar el mensaje
-
-  return () => clearTimeout(timer);
-}, [content]);
 
   return (
     <footer className="border-t border-neutral-800 bg-neutral-900 p-4">
@@ -40,13 +30,13 @@ export function MessageInput({ onSendMessage, disabled }: MessageInputProps) {
           disabled={disabled}
           className="flex-1 rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-neutral-100 placeholder-neutral-500 focus:border-indigo-500 focus:outline-none disabled:opacity-50"
         />
-        {!sentOnce && (<button
+       <button
           type="submit"
           disabled={disabled || !content.trim()}
           className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600 disabled:opacity-50"
         >
           Enviar
-        </button>)}
+        </button>
       </form>
     </footer>
   );

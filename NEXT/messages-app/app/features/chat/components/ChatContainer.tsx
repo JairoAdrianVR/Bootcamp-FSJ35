@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { useChat } from "../hooks/useChat";
 import { Message, User } from "../types";
 import { ChatHeader } from "./ChatHeader";
@@ -22,13 +21,6 @@ export function ChatContainer({
 }: ChatContainerProps) {
   const { messages, sendMessage } = useChat(chatId, initialMessages, currentUserId);
 
-const containerRef = useRef<HTMLDivElement>(null);
-
-useEffect(() => {
-  if (containerRef.current) {
-    containerRef.current.scrollTop = 0;
-  }
-}, [messages]);
 
   return (
     <div className="flex h-full flex-col bg-neutral-950">

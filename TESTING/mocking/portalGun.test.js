@@ -8,7 +8,7 @@ describe('Testeando el abrirPortal', () => {
         //1er paso -> Preparar
         const dimension = 'E-145';
         const energia = 25;
-        const disparador = vi.fn().mockReturnValue(false);
+        const disparador = vi.fn().mockReturnValue(true);
 
         //2do paso -> Actuar
         const resultado = abrirPortal(dimension,energia,disparador);

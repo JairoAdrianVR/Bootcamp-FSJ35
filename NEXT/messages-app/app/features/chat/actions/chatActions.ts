@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { supabaseAdmin } from "../../../repositories/supabase";
@@ -51,7 +52,7 @@ export async function getConversations(): Promise<Conversation[]> {
           id: String(userProfile.id),
           name: userProfile.name,
           avatarUrl:
-            userProfile.avatar_url ||
+            userProfile.avatarUrl ||
             `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(userProfile.name)}`,
           status: userProfile.status || "offline",
         },

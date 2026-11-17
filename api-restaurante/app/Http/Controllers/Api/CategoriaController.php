@@ -7,9 +7,6 @@ use App\Http\Requests\StoreCategoriaRequest;
 use App\Http\Requests\UpdateCategoriaRequest;
 use App\Http\Resources\CategoriaResource;
 use App\Models\Categoria;
-use App\Models\Pedido;
-use App\Models\PedidoItem;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class CategoriaController extends Controller
@@ -69,39 +66,7 @@ class CategoriaController extends Controller
     public function destroy(Categoria $categoria): mixed
     {
         try {
-            DB::transaction(function () use ($categoria) {
-                $platoIds = $categoria->platos()->pluck('id');
-
-                if ($platoIds->isNotEmpty()) {
-                    $affectedPedidoIds = PedidoItem::whereIn('plato_id', $platoIds)
-                        ->pluck('pedido_id')
-                        ->unique();
-
-                    PedidoItem::whereIn('plato_id', $platoIds)->delete();
-
-                    foreach ($affectedPedidoIds as $pedidoId) {
-                        $pedido = Pedido::find($pedidoId);
-
-                        if (! $pedido) {
-                            continue;
-                        }
-
-                        $remainingItems = $pedido->items()->get();
-
-                        if ($remainingItems->isEmpty()) {
-                            $pedido->delete();
-                        } else {
-                            $pedido->update([
-                                'total' => $remainingItems->sum('subtotal'),
-                            ]);
-                        }
-                    }
-
-                    $categoria->platos()->delete();
-                }
-
-                $categoria->delete();
-            });
+            $categoria->deleteWithDependencies();
 
             return response()->noContent();
         } catch (\Throwable $e) {

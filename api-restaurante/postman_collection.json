@@ -64,6 +64,49 @@
       ]
     },
     {
+      "name": "Menu (Publico)",
+      "item": [
+        {
+          "name": "Listar categorias con platos disponibles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/api/menu/categorias"
+          }
+        },
+        {
+          "name": "Listar platos disponibles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/menu/platos?categoria_id=1&buscar=pizza",
+              "host": ["{{base_url}}"],
+              "path": ["api", "menu", "platos"],
+              "query": [
+                { "key": "categoria_id", "value": "1" },
+                { "key": "buscar", "value": "pizza" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ver plato disponible",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/api/menu/platos/1"
+          }
+        }
+      ]
+    },
+    {
       "name": "Categorias",
       "item": [
         {
@@ -137,14 +180,23 @@
       "name": "Platos",
       "item": [
         {
-          "name": "Listar platos",
+          "name": "Listar platos (filtros)",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Accept", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
-            "url": "{{base_url}}/api/platos"
+            "url": {
+              "raw": "{{base_url}}/api/platos?categoria_id=1&disponible=1&buscar=pizza",
+              "host": ["{{base_url}}"],
+              "path": ["api", "platos"],
+              "query": [
+                { "key": "categoria_id", "value": "1" },
+                { "key": "disponible", "value": "1" },
+                { "key": "buscar", "value": "pizza" }
+              ]
+            }
           }
         },
         {
@@ -207,14 +259,22 @@
       "name": "Pedidos",
       "item": [
         {
-          "name": "Listar pedidos",
+          "name": "Listar pedidos (filtros)",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Accept", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
-            "url": "{{base_url}}/api/pedidos"
+            "url": {
+              "raw": "{{base_url}}/api/pedidos?estado=listo&mesa=Mesa%201",
+              "host": ["{{base_url}}"],
+              "path": ["api", "pedidos"],
+              "query": [
+                { "key": "estado", "value": "listo" },
+                { "key": "mesa", "value": "Mesa 1" }
+              ]
+            }
           }
         },
         {

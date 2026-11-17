@@ -6,18 +6,30 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePlatoRequest;
 use App\Http\Requests\UpdatePlatoRequest;
 use App\Http\Resources\PlatoResource;
-use App\Models\Pedido;
-use App\Models\PedidoItem;
 use App\Models\Plato;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class PlatoController extends Controller
 {
-    public function index(): mixed
+    public function index(Request $request): mixed
     {
         try {
-            $platos = Plato::with('categoria')->latest()->paginate();
+            $query = Plato::with('categoria');
+
+            if ($request->filled('categoria_id')) {
+                $query->where('categoria_id', $request->integer('categoria_id'));
+            }
+
+            if ($request->has('disponible')) {
+                $query->where('disponible', $request->boolean('disponible'));
+            }
+
+            if ($request->filled('buscar')) {
+                $query->where('nombre', 'like', '%'.$request->string('buscar').'%');
+            }
+
+            $platos = $query->latest()->paginate();
 
             return PlatoResource::collection($platos);
         } catch (\Throwable $e) {
@@ -67,33 +79,7 @@ class PlatoController extends Controller
     public function destroy(Plato $plato): mixed
     {
         try {
-            DB::transaction(function () use ($plato) {
-                $affectedPedidoIds = PedidoItem::where('plato_id', $plato->id)
-                    ->pluck('pedido_id')
-                    ->unique();
-
-                PedidoItem::where('plato_id', $plato->id)->delete();
-
-                foreach ($affectedPedidoIds as $pedidoId) {
-                    $pedido = Pedido::find($pedidoId);
-
-                    if (! $pedido) {
-                        continue;
-                    }
-
-                    $remainingItems = $pedido->items()->get();
-
-                    if ($remainingItems->isEmpty()) {
-                        $pedido->delete();
-                    } else {
-                        $pedido->update([
-                            'total' => $remainingItems->sum('subtotal'),
-                        ]);
-                    }
-                }
-
-                $plato->delete();
-            });
+            $plato->deleteWithDependencies();
 
             return response()->noContent();
         } catch (\Throwable $e) {

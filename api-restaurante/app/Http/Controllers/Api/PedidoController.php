@@ -7,17 +7,26 @@ use App\Http\Requests\StorePedidoRequest;
 use App\Http\Requests\UpdatePedidoRequest;
 use App\Http\Resources\PedidoResource;
 use App\Models\Pedido;
-use App\Models\Plato;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class PedidoController extends Controller
 {
-    public function index(): mixed
+    public function index(Request $request): mixed
     {
         try {
-            $pedidos = Pedido::with('items.plato')->latest()->paginate();
+            $query = Pedido::with('items.plato');
+
+            if ($request->filled('estado')) {
+                $query->where('estado', $request->string('estado'));
+            }
+
+            if ($request->filled('mesa')) {
+                $query->where('mesa', 'like', '%'.$request->string('mesa').'%');
+            }
+
+            $pedidos = $query->latest()->paginate();
 
             return PedidoResource::collection($pedidos);
         } catch (\Throwable $e) {
@@ -30,36 +39,7 @@ class PedidoController extends Controller
     public function store(StorePedidoRequest $request): mixed
     {
         try {
-            $pedido = DB::transaction(function () use ($request) {
-                $pedido = Pedido::create([
-                    'mesa' => $request->input('mesa'),
-                    'notas' => $request->input('notas'),
-                    'estado' => 'pendiente',
-                    'total' => 0,
-                ]);
-
-                $total = 0;
-
-                foreach ($request->input('items') as $item) {
-                    $plato = Plato::findOrFail($item['plato_id']);
-                    $cantidad = (int) $item['cantidad'];
-                    $precio = (float) $plato->precio;
-                    $subtotal = $precio * $cantidad;
-
-                    $pedido->items()->create([
-                        'plato_id' => $plato->id,
-                        'cantidad' => $cantidad,
-                        'precio_unitario' => $precio,
-                        'subtotal' => $subtotal,
-                    ]);
-
-                    $total += $subtotal;
-                }
-
-                $pedido->update(['total' => $total]);
-
-                return $pedido;
-            });
+            $pedido = Pedido::createWithItems($request->validated());
 
             return new PedidoResource($pedido->load('items.plato'));
         } catch (ModelNotFoundException $e) {

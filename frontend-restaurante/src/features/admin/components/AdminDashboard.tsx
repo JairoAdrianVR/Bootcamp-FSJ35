@@ -34,17 +34,20 @@ export function AdminDashboard() {
   }, []);
 
   const cards = [
-    { label: "Categorias", value: counts.categorias, href: "/admin/categorias", color: "from-amber-500 to-orange-500" },
-    { label: "Platos", value: counts.platos, href: "/admin/platos", color: "from-orange-500 to-red-500" },
-    { label: "Pedidos", value: counts.pedidos, href: "/admin/pedidos", color: "from-red-500 to-pink-500" },
+    { label: "Categorías", value: counts.categorias, href: "/admin/categorias" },
+    { label: "Platos", value: counts.platos, href: "/admin/platos" },
+    { label: "Pedidos", value: counts.pedidos, href: "/admin/pedidos" },
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-red-600 p-8 text-white shadow-lg">
-        <h2 className="text-2xl font-bold">Hola, {user?.name ?? "admin"} 👋</h2>
-        <p className="mt-1 text-white/90">
-          Bienvenido al panel de administracion. Gestiona tu restaurante desde aqui.
+    <div className="space-y-8">
+      <div className="rounded-2xl border border-border bg-background p-8">
+        <p className="text-sm font-medium text-muted-foreground">Panel de control</p>
+        <h2 className="mt-2 font-display text-3xl tracking-tight">
+          Hola, {user?.name ?? "administrador"}
+        </h2>
+        <p className="mt-2 text-muted-foreground">
+          Gestiona el restaurante: categorías, platos y pedidos desde aquí.
         </p>
       </div>
 
@@ -53,29 +56,27 @@ export function AdminDashboard() {
           <Link
             key={card.label}
             href={card.href}
-            className="group rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
+            className="group rounded-2xl border border-border bg-background p-6 transition hover:-translate-y-1 hover:shadow-lg"
           >
-            <div
-              className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${card.color} text-2xl text-white shadow`}
-            >
-              {card.label.charAt(0)}
-            </div>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">{card.label}</p>
-            <p className="text-3xl font-bold">{card.value}</p>
+            <p className="text-sm text-muted-foreground">{card.label}</p>
+            <p className="mt-2 font-display text-4xl tracking-tight">{card.value}</p>
+            <span className="mt-4 inline-block text-xs font-medium text-accent">
+              Gestionar
+            </span>
           </Link>
         ))}
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <h3 className="mb-4 font-semibold">Accesos rapidos</h3>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Link href="/admin/categorias" className="rounded-lg bg-zinc-50 px-4 py-3 text-sm font-medium transition hover:bg-orange-50 dark:bg-zinc-800 dark:hover:bg-orange-900/20">
-            Gestionar categorias
+      <div className="rounded-2xl border border-border bg-background p-6">
+        <h3 className="font-display text-xl tracking-tight">Accesos rápidos</h3>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <Link href="/admin/categorias" className="rounded-lg border border-border px-4 py-3 text-sm font-medium transition hover:bg-muted">
+            Gestionar categorías
           </Link>
-          <Link href="/admin/platos" className="rounded-lg bg-zinc-50 px-4 py-3 text-sm font-medium transition hover:bg-orange-50 dark:bg-zinc-800 dark:hover:bg-orange-900/20">
+          <Link href="/admin/platos" className="rounded-lg border border-border px-4 py-3 text-sm font-medium transition hover:bg-muted">
             Gestionar platos
           </Link>
-          <Link href="/admin/pedidos" className="rounded-lg bg-zinc-50 px-4 py-3 text-sm font-medium transition hover:bg-orange-50 dark:bg-zinc-800 dark:hover:bg-orange-900/20">
+          <Link href="/admin/pedidos" className="rounded-lg border border-border px-4 py-3 text-sm font-medium transition hover:bg-muted">
             Ver pedidos
           </Link>
         </div>

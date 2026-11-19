@@ -6,10 +6,34 @@ import { menuService } from "@/features/menu/services/menu.service";
 import type { MenuCategoria } from "@/features/menu/types";
 import type { Plato } from "@/features/platos/types";
 
+const API_ORIGIN = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000/api").replace(/\/api\/?$/, "");
+
+function resolveImage(src: string | null): string | null {
+  if (!src) return null;
+  if (/^https?:\/\//i.test(src)) return src;
+  const path = src.startsWith("/") ? src : `/${src}`;
+  return `${API_ORIGIN}${path}`;
+}
+
 function formatPrice(value: number | string): string {
   const num = typeof value === "string" ? Number(value) : value;
   return Number.isFinite(num) ? num.toFixed(2) : String(value);
 }
+
+const features = [
+  {
+    title: "Ingredientes de temporada",
+    text: "Trabajamos con productores locales y cocinamos lo que el tiempo ofrece.",
+  },
+  {
+    title: "Servicio cercano",
+    text: "Nuestro equipo te acompaña en cada momento de la visita.",
+  },
+  {
+    title: "Pedido sin esperas",
+    text: "Gestiona tu comanda desde la mesa de forma rápida y sencilla.",
+  },
+];
 
 export function HomeView() {
   const [categorias, setCategorias] = useState<MenuCategoria[]>([]);
@@ -45,101 +69,126 @@ export function HomeView() {
     .filter((p) => p.disponible)
     .slice(0, 6);
 
+  const heroImage = destacados
+    .map((p) => resolveImage(p.imagen))
+    .find((src) => src !== null) ?? null;
+
   return (
-    <div className="min-h-screen bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-amber-500 via-orange-500 to-red-600 text-white">
-        <div className="mx-auto max-w-6xl px-6 py-24 sm:py-32">
-          <div className="max-w-2xl space-y-6">
-            <span className="inline-block rounded-full bg-white/20 px-4 py-1 text-sm font-medium backdrop-blur">
-              Bienvenido a nuestro restaurante
-            </span>
-            <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
-              Sabores que enamoran, momentos que se recuerdan
+      <section className="relative overflow-hidden border-b border-border">
+        <div className="mx-auto grid max-w-6xl gap-12 px-6 py-20 sm:py-28 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+          <div className="space-y-8">
+            <h1 className="font-display text-5xl leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl reveal">
+              Cocina de temporada, servida con calma
             </h1>
-            <p className="text-lg text-white/90">
-              Disfruta de una cocina artesanal preparada con ingredientes frescos y de temporada.
-              Reserva tu mesa o pide directamente desde nuestro menú.
+            <p className="max-w-md text-lg leading-relaxed text-muted-foreground reveal reveal-delay-1">
+              Platos artesanales preparados con ingredientes frescos del mercado. Reserva tu mesa
+              o pide directamente desde el menú.
             </p>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3 reveal reveal-delay-2">
               <Link
                 href="/menu"
-                className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-orange-600 shadow-lg transition hover:bg-orange-50"
+                className="inline-flex items-center rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground transition hover:opacity-90"
               >
-                Ver menú
+                Explorar el menú
               </Link>
               <Link
                 href="/login"
-                className="rounded-full border border-white/40 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="inline-flex items-center rounded-full border border-border px-6 py-3 text-sm font-semibold transition hover:bg-muted"
               >
-                Acceso admin
+                Acceso administración
               </Link>
             </div>
+          </div>
+          <div className="reveal reveal-delay-2">
+            {heroImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={heroImage}
+                alt="Plato destacado de la casa"
+                className="aspect-[4/5] w-full rounded-3xl object-cover shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)]"
+              />
+            ) : (
+              <div className="flex aspect-[4/5] w-full items-center justify-center rounded-3xl bg-muted text-muted-foreground">
+                <span className="font-display text-2xl">Nuestra cocina</span>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
       {/* Destacados */}
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <div className="mb-8 flex items-end justify-between">
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold sm:text-3xl">Platos destacados</h2>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            <h2 className="font-display text-3xl tracking-tight sm:text-4xl">Platos destacados</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
               Una selección de nuestras especialidades de la casa.
             </p>
           </div>
-          <Link href="/menu" className="text-sm font-medium text-orange-600 hover:underline">
+          <Link href="/menu" className="text-sm font-medium text-accent hover:underline">
             Ver todos
           </Link>
         </div>
         {loading ? (
-          <p className="text-sm text-zinc-500">Cargando destacados...</p>
+          <p className="text-sm text-muted-foreground">Cargando destacados...</p>
         ) : destacados.length === 0 ? (
-          <p className="text-sm text-zinc-500">Próximamente publicaremos nuestros platos.</p>
+          <p className="text-sm text-muted-foreground">Próximamente publicaremos nuestros platos.</p>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {destacados.map((plato) => (
-              <article
-                key={plato.id}
-                className="group overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
-              >
-                <div className="h-40 bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/30 dark:to-red-900/30" />
-                <div className="space-y-2 p-5">
-                  <h3 className="font-semibold">{plato.nombre}</h3>
-                  {plato.descripcion ? (
-                    <p className="line-clamp-2 text-sm text-zinc-500 dark:text-zinc-400">
-                      {plato.descripcion}
-                    </p>
-                  ) : null}
-                  <p className="text-lg font-bold text-orange-600">{formatPrice(plato.precio)}</p>
-                </div>
-              </article>
-            ))}
+            {destacados.map((plato) => {
+              const img = resolveImage(plato.imagen);
+              return (
+                <article
+                  key={plato.id}
+                  className="group overflow-hidden rounded-2xl border border-border bg-background transition hover:-translate-y-1 hover:shadow-lg"
+                >
+                  {img ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={img}
+                      alt={plato.nombre}
+                      className="aspect-[4/3] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                    />
+                  ) : (
+                    <div className="flex aspect-[4/3] w-full items-center justify-center bg-muted text-muted-foreground">
+                      <span className="font-display text-xl">{plato.nombre.charAt(0)}</span>
+                    </div>
+                  )}
+                  <div className="space-y-2 p-5">
+                    <h3 className="font-display text-lg tracking-tight">{plato.nombre}</h3>
+                    {plato.descripcion ? (
+                      <p className="line-clamp-2 text-sm text-muted-foreground">{plato.descripcion}</p>
+                    ) : null}
+                    <p className="text-lg font-semibold text-accent">{formatPrice(plato.precio)}</p>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </section>
 
       {/* Categorias */}
-      <section className="bg-zinc-50 py-16 dark:bg-zinc-900/40">
+      <section className="bg-muted/60 py-20">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="mb-8 text-2xl font-semibold sm:text-3xl">Nuestras categorías</h2>
+          <h2 className="font-display text-3xl tracking-tight sm:text-4xl">Nuestras categorías</h2>
           {categorias.length === 0 && !loading ? (
-            <p className="text-sm text-zinc-500">Sin categorías disponibles.</p>
+            <p className="mt-4 text-sm text-muted-foreground">Sin categorías disponibles.</p>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {categorias.map((categoria) => (
                 <div
                   key={categoria.id}
-                  className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900"
+                  className="rounded-2xl border-l-2 border-accent bg-background p-5 transition hover:bg-muted"
                 >
-                  <h3 className="font-semibold">{categoria.nombre}</h3>
-                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                  <h3 className="font-display text-lg tracking-tight">{categoria.nombre}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
                     {categoria.platos.length} plato{categoria.platos.length === 1 ? "" : "s"}
                   </p>
                   {categoria.descripcion ? (
-                    <p className="mt-2 line-clamp-2 text-xs text-zinc-400">
-                      {categoria.descripcion}
-                    </p>
+                    <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{categoria.descripcion}</p>
                   ) : null}
                 </div>
               ))}
@@ -149,39 +198,26 @@ export function HomeView() {
       </section>
 
       {/* Features */}
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <div className="grid gap-8 sm:grid-cols-3">
-          {[
-            {
-              title: "Ingredientes frescos",
-              text: "Trabajamos con productores locales para garantizar la mejor calidad.",
-            },
-            {
-              title: "Atención personalizada",
-              text: "Nuestro equipo te acompaña en cada momento de tu visita.",
-            },
-            {
-              title: "Pedidos al instante",
-              text: "Gestiona tus comandas de forma rápida y sin complicaciones.",
-            },
-          ].map((f) => (
-            <div key={f.title} className="space-y-2">
-              <div className="text-3xl">✨</div>
-              <h3 className="font-semibold">{f.title}</h3>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">{f.text}</p>
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <div className="grid gap-10 sm:grid-cols-3">
+          {features.map((f) => (
+            <div key={f.title} className="space-y-3">
+              <span className="inline-block h-px w-10 bg-accent" aria-hidden />
+              <h3 className="font-display text-xl tracking-tight">{f.title}</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">{f.text}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* CTA */}
-      <section className="bg-orange-600 py-16 text-center text-white">
-        <div className="mx-auto max-w-2xl space-y-4 px-6">
-          <h2 className="text-2xl font-semibold sm:text-3xl">¿Listo para disfrutar?</h2>
-          <p className="text-white/90">Explora nuestro menú completo y haz tu pedido hoy mismo.</p>
+      <section className="bg-accent py-20 text-accent-foreground">
+        <div className="mx-auto max-w-2xl space-y-5 px-6 text-center">
+          <h2 className="font-display text-3xl tracking-tight sm:text-4xl">¿Listo para disfrutar?</h2>
+          <p className="text-accent-foreground/85">Explora nuestro menú completo y haz tu pedido hoy mismo.</p>
           <Link
             href="/menu"
-            className="inline-block rounded-full bg-white px-6 py-3 text-sm font-semibold text-orange-600 transition hover:bg-orange-50"
+            className="inline-flex items-center rounded-full bg-background px-6 py-3 text-sm font-semibold text-foreground transition hover:opacity-90"
           >
             Ir al menú
           </Link>
@@ -189,7 +225,7 @@ export function HomeView() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-200 py-8 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+      <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
         <p>© {year} Restaurante. Todos los derechos reservados.</p>
         <p className="mt-1">Calle Principal 123 · +34 600 000 000 · Lun-Dom 12:00-23:00</p>
       </footer>

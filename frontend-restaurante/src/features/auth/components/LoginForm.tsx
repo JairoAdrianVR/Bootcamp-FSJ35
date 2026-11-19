@@ -33,10 +33,10 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
-      <div className="space-y-1">
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="space-y-2">
         <label className="block text-sm font-medium" htmlFor="email">
-          Email
+          Correo electrónico
         </label>
         <input
           id="email"
@@ -44,12 +44,12 @@ export function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full rounded border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
         />
       </div>
-      <div className="space-y-1">
+      <div className="space-y-2">
         <label className="block text-sm font-medium" htmlFor="password">
-          Password
+          Contraseña
         </label>
         <input
           id="password"
@@ -57,14 +57,14 @@ export function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="w-full rounded border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
         />
       </div>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <button
         type="submit"
         disabled={submitting}
-        className="w-full rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900"
+        className="w-full rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-foreground transition hover:opacity-90 disabled:opacity-60"
       >
         {submitting ? "Ingresando..." : "Ingresar"}
       </button>

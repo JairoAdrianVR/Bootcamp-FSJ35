@@ -6,10 +6,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
 const navItems = [
-  { href: "/admin", label: "Dashboard", icon: "🏠" },
-  { href: "/admin/categorias", label: "Categorias", icon: "📂" },
-  { href: "/admin/platos", label: "Platos", icon: "🍽️" },
-  { href: "/admin/pedidos", label: "Pedidos", icon: "🧾" },
+  { href: "/admin", label: "Dashboard" },
+  { href: "/admin/categorias", label: "Categorías" },
+  { href: "/admin/platos", label: "Platos" },
+  { href: "/admin/pedidos", label: "Pedidos" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -25,8 +25,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-950">
-        <p className="text-sm text-zinc-500">Cargando panel...</p>
+      <div className="flex min-h-screen items-center justify-center bg-muted/40">
+        <p className="text-sm text-muted-foreground">Cargando panel...</p>
       </div>
     );
   }
@@ -34,14 +34,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!user || !user.is_admin) return null;
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-muted/40">
       <div className="flex">
-        <aside className="hidden w-64 shrink-0 border-r border-zinc-200 bg-white md:block dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex h-16 items-center gap-2 border-b border-zinc-200 px-6 dark:border-zinc-800">
-            <span className="text-xl">🍽️</span>
-            <span className="font-semibold">Restaurante</span>
+        <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-background md:flex">
+          <div className="flex h-16 items-center border-b border-border px-6">
+            <span className="font-display text-lg tracking-tight">Restaurante</span>
           </div>
-          <nav className="space-y-1 p-4">
+          <nav className="flex-1 space-y-1 p-4">
             {navItems.map((item) => {
               const active = pathname === item.href;
               return (
@@ -50,40 +49,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   href={item.href}
                   className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
                     active
-                      ? "bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400"
-                      : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                      ? "bg-accent/10 text-accent"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
-                  <span>{item.icon}</span>
+                  {active ? <span className="h-1.5 w-1.5 rounded-full bg-accent" /> : <span className="h-1.5 w-1.5" />}
                   {item.label}
                 </Link>
               );
             })}
           </nav>
-          <div className="absolute bottom-4 left-4 right-4 md:w-56">
+          <div className="border-t border-border p-4">
             <button
               onClick={logout}
-              className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              className="w-full rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
             >
-              Cerrar sesion
+              Cerrar sesión
             </button>
           </div>
         </aside>
 
         <div className="flex-1">
-          <header className="flex h-16 items-center justify-between border-b border-zinc-200 bg-white px-6 dark:border-zinc-800 dark:bg-zinc-900">
+          <header className="flex h-16 items-center justify-between border-b border-border bg-background px-6">
             <div>
-              <h1 className="text-lg font-semibold">Panel de administracion</h1>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                Gestiona tu restaurante
-              </p>
+              <h1 className="font-display text-lg tracking-tight">Panel de administración</h1>
+              <p className="text-xs text-muted-foreground">Gestiona tu restaurante</p>
             </div>
             <div className="flex items-center gap-3">
               <div className="hidden text-right sm:block">
                 <p className="text-sm font-medium">{user.name}</p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">{user.email}</p>
+                <p className="text-xs text-muted-foreground">{user.email}</p>
               </div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-100 text-sm font-semibold text-orange-600 dark:bg-orange-900/30">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/10 text-sm font-semibold text-accent">
                 {user.name.charAt(0).toUpperCase()}
               </div>
             </div>

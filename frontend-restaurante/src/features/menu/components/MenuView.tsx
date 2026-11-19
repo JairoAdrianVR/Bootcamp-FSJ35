@@ -6,6 +6,15 @@ import type { MenuCategoria } from "@/features/menu/types";
 import type { Plato } from "@/features/platos/types";
 import { ApiError } from "@/shared/types/api";
 
+const API_ORIGIN = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000/api").replace(/\/api\/?$/, "");
+
+function resolveImage(src: string | null): string | null {
+  if (!src) return null;
+  if (/^https?:\/\//i.test(src)) return src;
+  const path = src.startsWith("/") ? src : `/${src}`;
+  return `${API_ORIGIN}${path}`;
+}
+
 function formatPrice(value: number | string): string {
   const num = typeof value === "string" ? Number(value) : value;
   return Number.isFinite(num) ? num.toFixed(2) : String(value);
@@ -27,7 +36,7 @@ export function MenuView() {
       })
       .catch((err) => {
         if (active) {
-          setError(err instanceof ApiError ? err.message : "No se pudo cargar el menu.");
+          setError(err instanceof ApiError ? err.message : "No se pudo cargar el menú.");
         }
       })
       .finally(() => {
@@ -62,77 +71,57 @@ export function MenuView() {
   );
 
   return (
-    <div className="min-h-screen bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-amber-500 via-orange-500 to-red-600 text-white">
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="border-b border-border">
         <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
-          <div className="max-w-2xl space-y-4">
-            <span className="inline-block rounded-full bg-white/20 px-4 py-1 text-sm font-medium backdrop-blur">
-              Carta del restaurante
-            </span>
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Nuestro menú</h1>
-            <p className="text-lg text-white/90">
-              Explora nuestras especialidades preparadas con ingredientes frescos. {totalPlatos} platos disponibles.
-            </p>
-          </div>
+          <p className="text-sm font-medium text-muted-foreground">Carta del restaurante</p>
+          <h1 className="mt-2 font-display text-5xl tracking-tight sm:text-6xl">Nuestro menú</h1>
+          <p className="mt-4 max-w-xl text-muted-foreground">
+            Explora nuestras especialidades preparadas con ingredientes frescos. {totalPlatos} platos disponibles.
+          </p>
         </div>
-      </section>
+      </header>
 
       <div className="mx-auto max-w-6xl px-6 py-10">
         {/* Search + filters */}
-        <div className="mb-8 flex flex-col gap-4">
+        <div className="mb-10 flex flex-col gap-4">
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar plato..."
-            className="w-full rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm shadow-sm outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-200 dark:border-zinc-800 dark:bg-zinc-900"
+            placeholder="Buscar plato o ingrediente"
+            className="w-full rounded-xl border border-border bg-background px-5 py-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
           />
           <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setSelected(null)}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
-                selected === null
-                  ? "bg-orange-600 text-white"
-                  : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
-              }`}
-            >
+            <FilterPill active={selected === null} onClick={() => setSelected(null)}>
               Todos
-            </button>
+            </FilterPill>
             {categorias.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => setSelected(c.id)}
-                className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
-                  selected === c.id
-                    ? "bg-orange-600 text-white"
-                    : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
-                }`}
-              >
+              <FilterPill key={c.id} active={selected === c.id} onClick={() => setSelected(c.id)}>
                 {c.nombre}
-              </button>
+              </FilterPill>
             ))}
           </div>
         </div>
 
         {loading ? (
-          <p className="text-sm text-zinc-500">Cargando menu...</p>
+          <p className="text-sm text-muted-foreground">Cargando menú...</p>
         ) : error ? (
           <p className="text-sm text-red-600">{error}</p>
         ) : filtered.length === 0 ? (
-          <p className="text-sm text-zinc-500">No se encontraron platos.</p>
+          <p className="text-sm text-muted-foreground">No se encontraron platos.</p>
         ) : (
-          <div className="space-y-12">
+          <div className="space-y-16">
             {filtered.map((categoria) => (
-              <section key={categoria.id} className="space-y-4">
-                <div className="flex items-end justify-between">
+              <section key={categoria.id} className="space-y-6">
+                <div className="flex flex-wrap items-end justify-between gap-2 border-b border-border pb-3">
                   <div>
-                    <h2 className="text-2xl font-semibold">{categoria.nombre}</h2>
+                    <h2 className="font-display text-3xl tracking-tight">{categoria.nombre}</h2>
                     {categoria.descripcion ? (
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400">{categoria.descripcion}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{categoria.descripcion}</p>
                     ) : null}
                   </div>
-                  <span className="text-xs font-medium text-zinc-400">
+                  <span className="text-xs font-medium text-muted-foreground">
                     {categoria.platos.length} plato{categoria.platos.length === 1 ? "" : "s"}
                   </span>
                 </div>
@@ -150,31 +139,60 @@ export function MenuView() {
   );
 }
 
-function PlatoCard({ plato }: { plato: Plato }) {
+function FilterPill({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
   return (
-    <article className="group overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
-      <div className="relative h-44 bg-gradient-to-br from-orange-100 via-amber-100 to-red-100 dark:from-orange-900/30 dark:via-amber-900/20 dark:to-red-900/30">
-        <div className="absolute left-3 top-3 rounded-full bg-white/80 px-2 py-0.5 text-xs font-semibold text-orange-600 backdrop-blur dark:bg-zinc-900/80">
-          {plato.categoria?.nombre ?? ""}
+    <button
+      onClick={onClick}
+      className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
+        active
+          ? "bg-accent text-accent-foreground"
+          : "bg-muted text-foreground hover:bg-border"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function PlatoCard({ plato }: { plato: Plato }) {
+  const img = resolveImage(plato.imagen);
+  return (
+    <article className="group overflow-hidden rounded-2xl border border-border bg-background transition hover:-translate-y-1 hover:shadow-lg">
+      {img ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={img}
+          alt={plato.nombre}
+          className="aspect-[4/3] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+        />
+      ) : (
+        <div className="flex aspect-[4/3] w-full items-center justify-center bg-muted">
+          <span className="font-display text-3xl text-muted-foreground">{plato.nombre.charAt(0)}</span>
         </div>
-      </div>
+      )}
       <div className="space-y-2 p-5">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold leading-tight">{plato.nombre}</h3>
-          <span className="shrink-0 text-lg font-bold text-orange-600">{formatPrice(plato.precio)}</span>
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="font-display text-lg tracking-tight leading-tight">{plato.nombre}</h3>
+          <span className="shrink-0 font-display text-lg text-accent">{formatPrice(plato.precio)}</span>
         </div>
         {plato.descripcion ? (
-          <p className="line-clamp-2 text-sm text-zinc-500 dark:text-zinc-400">{plato.descripcion}</p>
+          <p className="line-clamp-2 text-sm text-muted-foreground">{plato.descripcion}</p>
         ) : null}
-        {!plato.disponible ? (
-          <span className="inline-block rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400">
-            No disponible
-          </span>
-        ) : (
-          <span className="inline-block rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
-            Disponible
-          </span>
-        )}
+        <div className="pt-1">
+          {plato.disponible ? (
+            <span className="text-xs font-medium text-accent">Disponible</span>
+          ) : (
+            <span className="text-xs font-medium text-red-600">No disponible</span>
+          )}
+        </div>
       </div>
     </article>
   );

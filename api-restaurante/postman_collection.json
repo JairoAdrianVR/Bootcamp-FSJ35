@@ -1,0 +1,337 @@
+{
+  "info": {
+    "name": "API Restaurante",
+    "description": "Coleccion para probar la API de administracion de comandas del restaurante.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000" },
+    { "key": "token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@restaurante.com\",\n  \"password\": \"password\"\n}"
+            },
+            "url": "{{base_url}}/api/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.token) { pm.collectionVariables.set('token', json.token); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/me"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/logout"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Menu (Publico)",
+      "item": [
+        {
+          "name": "Listar categorias con platos disponibles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/api/menu/categorias"
+          }
+        },
+        {
+          "name": "Listar platos disponibles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/menu/platos?categoria_id=1&buscar=pizza",
+              "host": ["{{base_url}}"],
+              "path": ["api", "menu", "platos"],
+              "query": [
+                { "key": "categoria_id", "value": "1" },
+                { "key": "buscar", "value": "pizza" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ver plato disponible",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/api/menu/platos/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categorias",
+      "item": [
+        {
+          "name": "Listar categorias",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/categorias"
+          }
+        },
+        {
+          "name": "Crear categoria",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Bebidas\",\n  \"descripcion\": \"Refrescos y jugos\"\n}"
+            },
+            "url": "{{base_url}}/api/categorias"
+          }
+        },
+        {
+          "name": "Ver categoria",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/categorias/1"
+          }
+        },
+        {
+          "name": "Actualizar categoria",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Bebidas Calientes\",\n  \"descripcion\": \"Cafes y tes\"\n}"
+            },
+            "url": "{{base_url}}/api/categorias/1"
+          }
+        },
+        {
+          "name": "Eliminar categoria",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/categorias/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Platos",
+      "item": [
+        {
+          "name": "Listar platos (filtros)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/platos?categoria_id=1&disponible=1&buscar=pizza",
+              "host": ["{{base_url}}"],
+              "path": ["api", "platos"],
+              "query": [
+                { "key": "categoria_id", "value": "1" },
+                { "key": "disponible", "value": "1" },
+                { "key": "buscar", "value": "pizza" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Crear plato",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_id\": 1,\n  \"nombre\": \"Pizza Margarita\",\n  \"descripcion\": \"Clasica con albahaca\",\n  \"precio\": 12.50,\n  \"imagen\": \"https://example.com/pizza.jpg\",\n  \"disponible\": true\n}"
+            },
+            "url": "{{base_url}}/api/platos"
+          }
+        },
+        {
+          "name": "Ver plato",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/platos/1"
+          }
+        },
+        {
+          "name": "Actualizar plato",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"precio\": 13.00,\n  \"disponible\": false\n}"
+            },
+            "url": "{{base_url}}/api/platos/1"
+          }
+        },
+        {
+          "name": "Eliminar plato",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/platos/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pedidos",
+      "item": [
+        {
+          "name": "Listar pedidos (filtros)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/pedidos?estado=listo&mesa=Mesa%201",
+              "host": ["{{base_url}}"],
+              "path": ["api", "pedidos"],
+              "query": [
+                { "key": "estado", "value": "listo" },
+                { "key": "mesa", "value": "Mesa 1" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Crear pedido",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mesa\": \"Mesa 3\",\n  \"notas\": \"Extra salsa\",\n  \"items\": [\n    { \"plato_id\": 1, \"cantidad\": 2 },\n    { \"plato_id\": 2, \"cantidad\": 1 }\n  ]\n}"
+            },
+            "url": "{{base_url}}/api/pedidos"
+          }
+        },
+        {
+          "name": "Ver pedido",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/pedidos/1"
+          }
+        },
+        {
+          "name": "Cambiar estado pedido",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"listo\"\n}"
+            },
+            "url": "{{base_url}}/api/pedidos/1"
+          }
+        },
+        {
+          "name": "Eliminar pedido",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/pedidos/1"
+          }
+        }
+      ]
+    }
+  ]
+}

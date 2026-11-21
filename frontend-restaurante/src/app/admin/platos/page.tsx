@@ -1,4 +1,4 @@
-import { AdminPlatos } from "@/features/admin/components/AdminPlatos";
+import { AdminPlatos } from "@/features/admin";
 
 export const instant = false;
 

@@ -66,6 +66,7 @@ src/
 - `shared/` **NO puede** importar de `features/` ni de `app/`.
 - `core/` **NO puede** importar de `features/`.
 - Las importaciones entre features a través de barrels están permitidas solo cuando el feature A expone explícitamente una API pública y el acoplamiento es intencional y documentado.
+- `features/admin` orquesta `platos`, `categorias` y `pedidos` vía sus barrels (`@/features/platos`, etc.) para el panel de administración. Este acoplamiento es intencional y documentado (admin es la capa de gestión sobre esos features).
 
 ### 2.3 Barrel exports
 

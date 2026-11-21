@@ -2,6 +2,65 @@
 
 import type { Categoria } from "@/features/categorias/types";
 
+function CategoriaAcciones({
+  categoria,
+  onEdit,
+  onDelete,
+}: {
+  categoria: Categoria;
+  onEdit: (categoria: Categoria) => void;
+  onDelete: (categoria: Categoria) => void;
+}) {
+  return (
+    <td className="px-4 py-2 text-right">
+      <button
+        onClick={() => onEdit(categoria)}
+        aria-label={`Editar ${categoria.nombre}`}
+        className="rounded bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground transition hover:bg-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      >
+        Editar
+      </button>
+      <button
+        onClick={() => onDelete(categoria)}
+        aria-label={`Eliminar ${categoria.nombre}`}
+        className="ml-2 rounded border border-border px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      >
+        Eliminar
+      </button>
+    </td>
+  );
+}
+
+function CategoriaRow({
+  categoria,
+  onEdit,
+  onDelete,
+}: {
+  categoria: Categoria;
+  onEdit: (categoria: Categoria) => void;
+  onDelete: (categoria: Categoria) => void;
+}) {
+  return (
+    <tr
+      key={categoria.id}
+      className="border-t border-border transition hover:bg-accent/5"
+    >
+      <td className="px-4 py-2 font-medium text-foreground">{categoria.nombre}</td>
+      <td className="px-4 py-2 text-muted-foreground">
+        {categoria.descripcion ?? "-"}
+      </td>
+      <td className="px-4 py-2 text-foreground">
+        {categoria.platos_count ?? "-"}
+      </td>
+      <CategoriaAcciones
+        categoria={categoria}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
+    </tr>
+  );
+}
+
 export function CategoriaTable({
   items,
   onEdit,
@@ -12,41 +71,36 @@ export function CategoriaTable({
   onDelete: (categoria: Categoria) => void;
 }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
+    <div className="overflow-x-auto rounded-lg border border-border">
       <table className="w-full text-sm">
-        <thead className="bg-zinc-50 dark:bg-zinc-900">
+        <thead className="bg-muted">
           <tr>
-            <th className="px-4 py-2 text-left">Nombre</th>
-            <th className="px-4 py-2 text-left">Descripcion</th>
-            <th className="px-4 py-2 text-left">Platos</th>
-            <th className="px-4 py-2 text-right">Acciones</th>
+            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
+              Nombre
+            </th>
+            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
+              Descripcion
+            </th>
+            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
+              Platos
+            </th>
+            <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-muted-foreground">
+              Acciones
+            </th>
           </tr>
         </thead>
         <tbody>
           {items.map((categoria) => (
-            <tr key={categoria.id} className="border-t border-zinc-200 transition hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
-              <td className="px-4 py-2 font-medium">{categoria.nombre}</td>
-              <td className="px-4 py-2 text-zinc-500">{categoria.descripcion ?? "-"}</td>
-              <td className="px-4 py-2">{categoria.platos_count ?? "-"}</td>
-              <td className="px-4 py-2 text-right">
-                <button
-                  onClick={() => onEdit(categoria)}
-                  className="mr-2 text-blue-600 hover:underline"
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => onDelete(categoria)}
-                  className="text-red-600 hover:underline"
-                >
-                  Eliminar
-                </button>
-              </td>
-            </tr>
+            <CategoriaRow
+              key={categoria.id}
+              categoria={categoria}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
           ))}
           {items.length === 0 ? (
             <tr>
-              <td colSpan={4} className="px-4 py-6 text-center text-zinc-500">
+              <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
                 Sin categorias.
               </td>
             </tr>

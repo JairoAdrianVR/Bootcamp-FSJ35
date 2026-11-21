@@ -1,4 +1,4 @@
-import { AdminCategorias } from "@/features/admin/components/AdminCategorias";
+import { AdminCategorias } from "@/features/admin";
 
 export const instant = false;
 

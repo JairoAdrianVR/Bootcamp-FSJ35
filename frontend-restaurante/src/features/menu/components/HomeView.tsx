@@ -2,23 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { menuService } from "@/features/menu/services/menu.service";
-import type { MenuCategoria } from "@/features/menu/types";
-import type { Plato } from "@/features/platos/types";
-
-const API_ORIGIN = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000/api").replace(/\/api\/?$/, "");
-
-function resolveImage(src: string | null): string | null {
-  if (!src) return null;
-  if (/^https?:\/\//i.test(src)) return src;
-  const path = src.startsWith("/") ? src : `/${src}`;
-  return `${API_ORIGIN}${path}`;
-}
-
-function formatPrice(value: number | string): string {
-  const num = typeof value === "string" ? Number(value) : value;
-  return Number.isFinite(num) ? num.toFixed(2) : String(value);
-}
+import { useMenuCategorias } from "@/features/menu/hooks/useMenuCategorias";
+import { formatPrice, getPlatosDestacados, resolveImage } from "@/features/menu/utils/format";
 
 const features = [
   {
@@ -36,27 +21,8 @@ const features = [
 ];
 
 export function HomeView() {
-  const [categorias, setCategorias] = useState<MenuCategoria[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { categorias, loading, error } = useMenuCategorias();
   const [year, setYear] = useState(2026);
-
-  useEffect(() => {
-    let active = true;
-    menuService
-      .categorias()
-      .then((data) => {
-        if (active) setCategorias(data);
-      })
-      .catch(() => {
-        if (active) setCategorias([]);
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
 
   useEffect(() => {
     // Client-only value; update after mount to avoid prerender mismatch.
@@ -64,14 +30,10 @@ export function HomeView() {
     setYear(new Date().getFullYear());
   }, []);
 
-  const destacados: Plato[] = categorias
-    .flatMap((c) => c.platos)
-    .filter((p) => p.disponible)
-    .slice(0, 6);
+  const destacados = getPlatosDestacados(categorias);
 
-  const heroImage = destacados
-    .map((p) => resolveImage(p.imagen))
-    .find((src) => src !== null) ?? null;
+  const heroImage =
+    destacados.map((plato) => resolveImage(plato.imagen)).find((src) => src !== null) ?? null;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -89,13 +51,13 @@ export function HomeView() {
             <div className="flex flex-wrap gap-3 reveal reveal-delay-2">
               <Link
                 href="/menu"
-                className="inline-flex items-center rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground transition hover:opacity-90"
+                className="inline-flex items-center rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 Explorar el menú
               </Link>
               <Link
                 href="/login"
-                className="inline-flex items-center rounded-full border border-border px-6 py-3 text-sm font-semibold transition hover:bg-muted"
+                className="inline-flex items-center rounded-full border border-border px-6 py-3 text-sm font-semibold transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 Acceso administración
               </Link>
@@ -127,12 +89,16 @@ export function HomeView() {
               Una selección de nuestras especialidades de la casa.
             </p>
           </div>
-          <Link href="/menu" className="text-sm font-medium text-accent hover:underline">
+          <Link href="/menu" className="text-sm font-medium text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
             Ver todos
           </Link>
         </div>
         {loading ? (
           <p className="text-sm text-muted-foreground">Cargando destacados...</p>
+        ) : error ? (
+          <p className="rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium text-foreground">
+            {error}
+          </p>
         ) : destacados.length === 0 ? (
           <p className="text-sm text-muted-foreground">Próximamente publicaremos nuestros platos.</p>
         ) : (
@@ -174,7 +140,11 @@ export function HomeView() {
       <section className="bg-muted/60 py-20">
         <div className="mx-auto max-w-6xl px-6">
           <h2 className="font-display text-3xl tracking-tight sm:text-4xl">Nuestras categorías</h2>
-          {categorias.length === 0 && !loading ? (
+          {error ? (
+            <p className="mt-4 rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium text-foreground">
+              {error}
+            </p>
+          ) : categorias.length === 0 && !loading ? (
             <p className="mt-4 text-sm text-muted-foreground">Sin categorías disponibles.</p>
           ) : (
             <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -217,7 +187,7 @@ export function HomeView() {
           <p className="text-accent-foreground/85">Explora nuestro menú completo y haz tu pedido hoy mismo.</p>
           <Link
             href="/menu"
-            className="inline-flex items-center rounded-full bg-background px-6 py-3 text-sm font-semibold text-foreground transition hover:opacity-90"
+            className="inline-flex items-center rounded-full bg-background px-6 py-3 text-sm font-semibold text-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             Ir al menú
           </Link>

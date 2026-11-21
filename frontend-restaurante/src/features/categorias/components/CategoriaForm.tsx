@@ -1,7 +1,73 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useId, useState, type FormEvent } from "react";
 import type { Categoria, CreateCategoriaInput } from "@/features/categorias/types";
+
+function CampoFormulario({
+  label,
+  id,
+  children,
+}: {
+  label: string;
+  id: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1">
+      <label htmlFor={id} className="text-sm font-medium text-foreground">
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function InputTexto({
+  id,
+  value,
+  onChange,
+  placeholder,
+  required,
+}: {
+  id: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder: string;
+  required?: boolean;
+}) {
+  return (
+    <input
+      id={id}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      required={required}
+      className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground dark:bg-muted dark:text-foreground dark:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+    />
+  );
+}
+
+function AreaTexto({
+  id,
+  value,
+  onChange,
+  placeholder,
+}: {
+  id: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  placeholder: string;
+}) {
+  return (
+    <textarea
+      id={id}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground dark:bg-muted dark:text-foreground dark:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+    />
+  );
+}
 
 export function CategoriaForm({
   initial,
@@ -14,6 +80,9 @@ export function CategoriaForm({
   submitting: boolean;
   error: string | null;
 }) {
+  const idNombre = useId();
+  const idDescripcion = useId();
+
   const [nombre, setNombre] = useState(initial?.nombre ?? "");
   const [descripcion, setDescripcion] = useState(initial?.descripcion ?? "");
 
@@ -26,26 +95,37 @@ export function CategoriaForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-      <h3 className="font-medium">{initial ? "Editar categoria" : "Nueva categoria"}</h3>
-      <input
-        value={nombre}
-        onChange={(e) => setNombre(e.target.value)}
-        placeholder="Nombre"
-        required
-        className="w-full rounded border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-      />
-      <textarea
-        value={descripcion ?? ""}
-        onChange={(e) => setDescripcion(e.target.value)}
-        placeholder="Descripcion"
-        className="w-full rounded border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-      />
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 rounded-xl border border-border p-6 bg-background dark:bg-muted"
+    >
+      <h3 className="font-display text-lg font-semibold text-foreground">
+        {initial ? "Editar categoria" : "Nueva categoria"}
+      </h3>
+      <CampoFormulario label="Nombre" id={idNombre}>
+        <InputTexto
+          id={idNombre}
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          placeholder="Nombre"
+          required
+        />
+      </CampoFormulario>
+      <CampoFormulario label="Descripcion" id={idDescripcion}>
+        <AreaTexto
+          id={idDescripcion}
+          value={descripcion ?? ""}
+          onChange={(e) => setDescripcion(e.target.value)}
+          placeholder="Descripcion"
+        />
+      </CampoFormulario>
+      {error ? (
+        <p className="text-sm font-medium text-foreground">{error}</p>
+      ) : null}
       <button
         type="submit"
         disabled={submitting}
-        className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900"
+        className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground transition hover:bg-accent/90 disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         {submitting ? "Guardando..." : initial ? "Actualizar" : "Crear"}
       </button>

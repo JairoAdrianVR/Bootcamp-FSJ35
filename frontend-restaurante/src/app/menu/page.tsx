@@ -1,4 +1,4 @@
-import { MenuView } from "@/features/menu/components/MenuView";
+import { MenuView } from "@/features/menu";
 
 
 export default function MenuPage() {

@@ -1,74 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { menuService } from "@/features/menu/services/menu.service";
-import type { MenuCategoria } from "@/features/menu/types";
-import type { Plato } from "@/features/platos/types";
-import { ApiError } from "@/shared/types/api";
-
-const API_ORIGIN = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000/api").replace(/\/api\/?$/, "");
-
-function resolveImage(src: string | null): string | null {
-  if (!src) return null;
-  if (/^https?:\/\//i.test(src)) return src;
-  const path = src.startsWith("/") ? src : `/${src}`;
-  return `${API_ORIGIN}${path}`;
-}
-
-function formatPrice(value: number | string): string {
-  const num = typeof value === "string" ? Number(value) : value;
-  return Number.isFinite(num) ? num.toFixed(2) : String(value);
-}
+import { useMenuCategorias } from "@/features/menu/hooks/useMenuCategorias";
+import { useMenuFiltros } from "@/features/menu/hooks/useMenuFiltros";
+import { formatPrice, resolveImage } from "@/features/menu/utils/format";
+import type { Plato } from "@/features/platos";
 
 export function MenuView() {
-  const [categorias, setCategorias] = useState<MenuCategoria[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<number | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    menuService
-      .categorias()
-      .then((data) => {
-        if (active) setCategorias(data);
-      })
-      .catch((err) => {
-        if (active) {
-          setError(err instanceof ApiError ? err.message : "No se pudo cargar el menú.");
-        }
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    return categorias
-      .filter((c) => (selected === null ? true : c.id === selected))
-      .map((c) => ({
-        ...c,
-        platos: c.platos.filter((p) => {
-          if (!p.disponible) return false;
-          if (!term) return true;
-          return (
-            p.nombre.toLowerCase().includes(term) ||
-            (p.descripcion ?? "").toLowerCase().includes(term)
-          );
-        }),
-      }))
-      .filter((c) => c.platos.length > 0);
-  }, [categorias, search, selected]);
-
-  const totalPlatos = useMemo(
-    () => categorias.reduce((acc, c) => acc + c.platos.filter((p) => p.disponible).length, 0),
-    [categorias],
-  );
+  const { categorias, loading, error } = useMenuCategorias();
+  const { search, setSearch, selected, setSelected, filtered, totalPlatos } =
+    useMenuFiltros(categorias);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -90,6 +30,7 @@ export function MenuView() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar plato o ingrediente"
+            aria-label="Buscar plato o ingrediente"
             className="w-full rounded-xl border border-border bg-background px-5 py-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
           />
           <div className="flex flex-wrap gap-2">
@@ -107,7 +48,7 @@ export function MenuView() {
         {loading ? (
           <p className="text-sm text-muted-foreground">Cargando menú...</p>
         ) : error ? (
-          <p className="text-sm text-red-600">{error}</p>
+          <p className="text-sm font-medium text-foreground">{error}</p>
         ) : filtered.length === 0 ? (
           <p className="text-sm text-muted-foreground">No se encontraron platos.</p>
         ) : (
@@ -151,7 +92,7 @@ function FilterPill({
   return (
     <button
       onClick={onClick}
-      className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
+      className={`rounded-full px-4 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
         active
           ? "bg-accent text-accent-foreground"
           : "bg-muted text-foreground hover:bg-border"
@@ -190,7 +131,7 @@ function PlatoCard({ plato }: { plato: Plato }) {
           {plato.disponible ? (
             <span className="text-xs font-medium text-accent">Disponible</span>
           ) : (
-            <span className="text-xs font-medium text-red-600">No disponible</span>
+            <span className="text-xs font-medium text-foreground">No disponible</span>
           )}
         </div>
       </div>

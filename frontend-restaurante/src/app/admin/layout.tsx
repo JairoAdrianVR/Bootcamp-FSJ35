@@ -47,7 +47,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                     active
                       ? "bg-accent/10 text-accent"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -62,7 +62,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="border-t border-border p-4">
             <button
               onClick={logout}
-              className="w-full rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
+              className="w-full rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               Cerrar sesión
             </button>

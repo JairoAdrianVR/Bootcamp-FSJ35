@@ -1,128 +1,67 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { categoriasService } from "@/features/categorias/services/categorias.service";
-import { CategoriaTable } from "@/features/categorias/components/CategoriaTable";
-import { CategoriaForm } from "@/features/categorias/components/CategoriaForm";
-import type { Categoria } from "@/features/categorias/types";
-import { ApiError } from "@/shared/types/api";
+import { CategoriaForm, CategoriaTable, type Categoria } from "@/features/categorias";
+import { useCategoriasAdmin } from "@/features/admin/hooks/useCategoriasAdmin";
 
 export function AdminCategorias() {
-  const [items, setItems] = useState<Categoria[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [editing, setEditing] = useState<Categoria | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await categoriasService.list();
-      setItems(res.data);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "No se pudieron cargar las categorias.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const res = await categoriasService.list();
-        if (active) setItems(res.data);
-      } catch (err) {
-        if (active) {
-          setError(err instanceof ApiError ? err.message : "No se pudieron cargar las categorias.");
-        }
-      } finally {
-        if (active) setLoading(false);
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  async function handleSubmit(input: { nombre: string; descripcion?: string | null }) {
-    setSubmitting(true);
-    setFormError(null);
-    try {
-      if (editing) {
-        await categoriasService.update(editing.id, input);
-      } else {
-        await categoriasService.create(input);
-      }
-      setEditing(null);
-      setShowForm(false);
-      await load();
-    } catch (err) {
-      setFormError(err instanceof ApiError ? err.message : "No se pudo guardar.");
-    } finally {
-      setSubmitting(false);
-    }
-  }
+  const {
+    items,
+    loading,
+    error,
+    editing,
+    showForm,
+    submitting,
+    formError,
+    toggleForm,
+    openEdit,
+    save,
+    remove,
+  } = useCategoriasAdmin();
 
   async function handleDelete(categoria: Categoria) {
     if (!confirm(`Eliminar categoria "${categoria.nombre}"?`)) return;
-    try {
-      await categoriasService.remove(categoria.id);
-      await load();
-    } catch (err) {
-      alert(err instanceof ApiError ? err.message : "No se pudo eliminar.");
-    }
+    const message = await remove(categoria.id);
+    if (message) alert(message);
   }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Categorias</h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <h2 className="font-display text-2xl font-bold text-foreground">
+            Categorias
+          </h2>
+          <p className="text-sm text-muted-foreground">
             Organiza los platos de tu carta por categorias.
           </p>
         </div>
         <button
-          onClick={() => {
-            setEditing(null);
-            setShowForm((v) => !v);
-          }}
-          className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 px-4 py-2 text-sm font-semibold text-white shadow transition hover:opacity-90"
+          onClick={toggleForm}
+          className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition hover:bg-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           {showForm ? "Cerrar" : "+ Nueva categoria"}
         </button>
       </div>
 
       {showForm ? (
-        <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="rounded-xl border border-border bg-background p-6 shadow-sm dark:bg-muted">
           <CategoriaForm
             key={editing?.id ?? "new"}
             initial={editing}
-            onSubmit={handleSubmit}
+            onSubmit={save}
             submitting={submitting}
             error={formError}
           />
         </div>
       ) : null}
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="rounded-xl border border-border bg-background p-4 shadow-sm dark:bg-muted">
         {loading ? (
-          <p className="p-4 text-sm text-zinc-500">Cargando...</p>
+          <p className="p-4 text-sm text-muted-foreground">Cargando...</p>
         ) : error ? (
-          <p className="p-4 text-sm text-red-600">{error}</p>
+          <p className="p-4 text-sm font-medium text-foreground">{error}</p>
         ) : (
-          <CategoriaTable
-            items={items}
-            onEdit={(c) => {
-              setEditing(c);
-              setShowForm(true);
-            }}
-            onDelete={handleDelete}
-          />
+          <CategoriaTable items={items} onEdit={openEdit} onDelete={handleDelete} />
         )}
       </div>
     </div>

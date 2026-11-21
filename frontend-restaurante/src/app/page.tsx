@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { HomeView } from "@/features/menu/components/HomeView";
+import { HomeView } from "@/features/menu";
 
 
 export const metadata: Metadata = {

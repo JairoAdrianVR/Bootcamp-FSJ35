@@ -8,8 +8,8 @@ import { ApiError } from "@/shared/types/api";
 export function LoginForm() {
   const { login } = useAuth();
   const router = useRouter();
-  const [email, setEmail] = useState("admin@restaurante.com");
-  const [password, setPassword] = useState("password");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -64,7 +64,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="w-full rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-foreground transition hover:opacity-90 disabled:opacity-60"
+        className="w-full rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-foreground transition hover:opacity-90 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         {submitting ? "Ingresando..." : "Ingresar"}
       </button>

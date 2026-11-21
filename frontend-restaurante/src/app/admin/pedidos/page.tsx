@@ -1,4 +1,4 @@
-import { AdminPedidos } from "@/features/admin/components/AdminPedidos";
+import { AdminPedidos } from "@/features/admin";
 
 export const instant = false;
 

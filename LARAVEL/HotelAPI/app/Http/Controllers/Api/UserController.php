@@ -1,0 +1,51 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Symfony\Component\HttpFoundation\Response;
+
+class UserController extends BaseApiController
+{
+    public function index(): JsonResponse
+    {
+        $users = User::select(['id', 'name', 'email', 'phone', 'identification_number', 'role', 'created_at'])->get();
+        return $this->successResponse($users, 'Listado de usuarios/clientes recuperado.');
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:150',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'nullable|string|min:6',
+            'phone' => 'nullable|string|max:30',
+            'identification_number' => 'nullable|string|max:30',
+        ]);
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password'] ?? 'secret123'),
+            'phone' => $validated['phone'] ?? null,
+            'identification_number' => $validated['identification_number'] ?? null,
+            'role' => 'customer',
+        ]);
+
+        return $this->successResponse($user, 'Cliente registrado exitosamente.', Response::HTTP_CREATED);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $user = User::with(['reservations.room.hotel', 'reservations.payment'])->find($id);
+
+        if (!$user) {
+            return $this->errorResponse('Cliente no encontrado.', Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->successResponse($user, 'Detalle de cliente recuperado.');
+    }
+}

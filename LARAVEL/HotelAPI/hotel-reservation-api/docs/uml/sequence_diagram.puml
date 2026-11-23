@@ -1,0 +1,54 @@
+@startuml Diagrama_Secuencia_HotelAPI
+autonumber
+actor "Cliente (Frontend/App)" as Client
+participant "RoomController" as RoomCtrl
+participant "ReservationController" as ResCtrl
+participant "PaymentController" as PayCtrl
+participant "ReservationService" as ResService
+participant "RoomRepository" as RoomRepo
+participant "PaymentProcessingService" as PayService
+participant "PaymentGateway (Adapter)" as Gateway
+participant "NotificationService" as NotifService
+database "Base de Datos (SQL)" as DB
+
+== 1. Buscar habitaciones disponibles ==
+Client -> RoomCtrl: GET /api/v1/rooms/search?check_in_date=2026-12-01&check_out_date=2026-12-05&guests=2
+RoomCtrl -> RoomRepo: findAvailableRooms(CriteriaDTO)
+RoomRepo -> DB: SELECT rooms WHERE status='available' AND NOT EXISTS overlapping reservations
+DB --> RoomRepo: [Habitaciones libres]
+RoomRepo --> RoomCtrl: Collection<Room>
+RoomCtrl --> Client: 200 OK + JSON [Habitaciones disponibles]
+
+== 2. Realizar reserva ==
+Client -> ResCtrl: POST /api/v1/reservations { user_id, room_id, check_in_date, check_out_date, guests_count }
+ResCtrl -> ResService: makeReservation(CreateReservationDTO)
+ResService -> RoomRepo: isRoomAvailableForDates(roomId, checkIn, checkOut)
+RoomRepo --> ResService: true (Disponible)
+ResService -> ResService: calcularNoches() & calcularTotal()
+ResService -> DB: INSERT INTO reservations (status='pending_payment', total_amount=520.00)
+DB --> ResService: Reservation (RES-8A7B6C)
+ResService --> ResCtrl: Reservation
+ResCtrl --> Client: 201 Created + JSON Reservation (pending_payment)
+
+== 3. Gestionar pagos (Desacoplado) ==
+Client -> PayCtrl: POST /api/v1/payments { reservation_id, amount: 520.00, payment_method: "credit_card", token }
+PayCtrl -> PayService: processPayment(ProcessPaymentDTO)
+PayService -> DB: SELECT reservation WHERE id = 1
+DB --> PayService: Reservation (total_amount=520.00, status='pending_payment')
+PayService -> Gateway: charge(ProcessPaymentDTO)
+note over Gateway: Invocación desacoplada a pasarela externa (Stripe / PayPal / Mock)
+Gateway --> PayService: PaymentResultDTO(isSuccess=true, transactionId='txn_12345')
+PayService -> DB: INSERT INTO payments (status='completed', gateway_txn='txn_12345')
+PayService -> DB: UPDATE reservations SET status='confirmed' WHERE id = 1
+PayService -> NotifService: sendReservationConfirmation(reservation)
+PayService --> PayCtrl: Payment (completed)
+PayCtrl --> Client: 201 Created + JSON Payment
+
+== 4. Recibir confirmación de reserva ==
+Client -> ResCtrl: GET /api/v1/reservations/RES-8A7B6C/confirmation
+ResCtrl -> ResService: getConfirmation('RES-8A7B6C')
+ResService -> DB: SELECT reservation WITH user, room.hotel, payment
+DB --> ResService: Reservation con relaciones
+ResService --> ResCtrl: Reservation
+ResCtrl --> Client: 200 OK + Voucher de Confirmación con Desglose y Firma Digital
+@enduml

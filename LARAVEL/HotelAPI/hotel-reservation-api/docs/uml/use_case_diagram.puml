@@ -1,0 +1,41 @@
+@startuml Diagrama_Casos_de_Uso_HotelAPI
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "Cliente / Usuario" as Client
+actor "Administrador de Hotel" as Admin
+actor "Pasarela de Pagos (Stripe/PayPal)" as Gateway << External System >>
+
+rectangle "Sistema Empresarial de Reservas y Pagos" {
+    usecase "Buscar habitaciones disponibles" as UC_Search
+    usecase "Filtrar por fechas y capacidad" as UC_Filter
+    usecase "Realizar reserva" as UC_Book
+    usecase "Validar disponibilidad sin traslapes" as UC_ValidateDates
+    usecase "Calcular total de noches y precio" as UC_CalculatePrice
+    usecase "Gestionar pagos" as UC_Payment
+    usecase "Autorizar cobro externo" as UC_ChargeExternal
+    usecase "Recibir confirmaciones de reserva" as UC_Confirm
+    usecase "Generar comprobante digital" as UC_Voucher
+    usecase "Gestionar inventario de habitaciones" as UC_ManageRooms
+}
+
+' Relaciones del Cliente
+Client --> UC_Search
+Client --> UC_Book
+Client --> UC_Payment
+Client --> UC_Confirm
+
+' Relaciones <<include>> y <<extend>>
+UC_Search ..> UC_Filter : <<include>>
+UC_Book ..> UC_ValidateDates : <<include>>
+UC_Book ..> UC_CalculatePrice : <<include>>
+UC_Payment ..> UC_ChargeExternal : <<include>>
+UC_Confirm ..> UC_Voucher : <<include>>
+
+' Relaciones externas
+UC_ChargeExternal --> Gateway : procesa transacción
+
+' Relaciones Administrador
+Admin --> UC_ManageRooms
+@enduml

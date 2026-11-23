@@ -1,0 +1,133 @@
+@startuml Diagrama_Clases_HotelAPI
+skinparam classAttributeIconSize 0
+
+package "Domain Models" {
+    class User {
+        +int id
+        +string name
+        +string email
+        +string phone
+        +string identification_number
+        +string role
+        +reservations(): HasMany
+    }
+
+    class Hotel {
+        +int id
+        +string name
+        +string description
+        +string address
+        +string city
+        +string country
+        +string phone
+        +int star_rating
+        +bool is_active
+        +rooms(): HasMany
+    }
+
+    class Room {
+        +int id
+        +int hotel_id
+        +string room_number
+        +string type
+        +int capacity
+        +float price_per_night
+        +string description
+        +string status
+        +hotel(): BelongsTo
+        +reservations(): HasMany
+    }
+
+    class Reservation {
+        +int id
+        +string reservation_code
+        +int user_id
+        +int room_id
+        +date check_in_date
+        +date check_out_date
+        +int guests_count
+        +int nights_count
+        +float price_per_night
+        +float total_amount
+        +string status
+        +string special_requests
+        +user(): BelongsTo
+        +room(): BelongsTo
+        +payment(): HasOne
+        +isConfirmed(): bool
+    }
+
+    class Payment {
+        +int id
+        +string payment_reference
+        +int reservation_id
+        +float amount
+        +string currency
+        +string payment_method
+        +string status
+        +string gateway_transaction_id
+        +datetime paid_at
+        +array payment_details
+        +reservation(): BelongsTo
+    }
+}
+
+package "Contracts (Abstractions & Decoupling)" {
+    interface RoomRepositoryInterface {
+        +findAvailableRooms(criteria: RoomSearchCriteriaDTO): Collection
+        +findById(id: int): Room
+        +isRoomAvailableForDates(roomId: int, checkIn: string, checkOut: string): bool
+    }
+
+    interface ReservationRepositoryInterface {
+        +create(data: array): Reservation
+        +findById(id: int, relations: array): Reservation
+        +findByCode(code: string, relations: array): Reservation
+        +updateStatus(id: int, status: string): bool
+    }
+
+    interface PaymentGatewayInterface {
+        +charge(paymentDTO: ProcessPaymentDTO): PaymentResultDTO
+        +refund(transactionId: string, amount: float): bool
+    }
+
+    interface ReservationServiceInterface {
+        +makeReservation(dto: CreateReservationDTO): Reservation
+        +getConfirmation(identifier: string|int): Reservation
+        +cancelReservation(id: int): bool
+    }
+
+    interface PaymentServiceInterface {
+        +processPayment(dto: ProcessPaymentDTO): Payment
+    }
+
+    interface NotificationServiceInterface {
+        +sendReservationConfirmation(reservation: Reservation): bool
+    }
+}
+
+package "Services & Repositories (Implementations)" {
+    class EloquentRoomRepository implements RoomRepositoryInterface
+    class EloquentReservationRepository implements ReservationRepositoryInterface
+    class MockPaymentGateway implements PaymentGatewayInterface
+    class ReservationService implements ReservationServiceInterface
+    class PaymentProcessingService implements PaymentServiceInterface
+    class LogNotificationService implements NotificationServiceInterface
+}
+
+' Relaciones del Dominio
+Hotel "1" *-- "0..*" Room : posee
+User "1" *-- "0..*" Reservation : realiza
+Room "1" *-- "0..*" Reservation : reservada_en
+Reservation "1" -- "0..1" Payment : liquidada_por
+
+' Relaciones de Inversión de Dependencias
+ReservationService ..> ReservationRepositoryInterface : inyecta
+ReservationService ..> RoomRepositoryInterface : inyecta
+ReservationService ..> NotificationServiceInterface : inyecta
+
+PaymentProcessingService ..> ReservationRepositoryInterface : inyecta
+PaymentProcessingService ..> PaymentGatewayInterface : inyecta
+PaymentProcessingService ..> NotificationServiceInterface : inyecta
+
+@enduml

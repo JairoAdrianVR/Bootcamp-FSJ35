@@ -1,0 +1,373 @@
+openapi: 3.0.3
+info:
+  title: Hotel Reservation & Decoupled Payment Enterprise API
+  description: >
+    Contrato formal de API para el sistema de reserva de habitaciones, gestión de pagos
+    y emisión de confirmaciones. Diseñado bajo principios de desacoplamiento, Clean Architecture,
+    inversión de dependencias (DIP) y tipado estricto.
+  version: 1.0.0
+  contact:
+    name: Full Stack Software Engineering Team
+    email: dev-team@enterprise-hotel.com
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Servidor de Desarrollo Local
+
+tags:
+  - name: Habitaciones
+    description: Consulta y búsqueda de disponibilidad de habitaciones
+  - name: Reservas
+    description: Ciclo de vida y creación de reservas hoteleras
+  - name: Pagos
+    description: Procesamiento desacoplado de pagos (Adapter / Gateway Pattern)
+  - name: Confirmaciones
+    description: Comprobantes formales y verificación de estancias
+  - name: Hoteles
+    description: Catálogo de establecimientos y sedes
+
+paths:
+  /rooms/search:
+    get:
+      tags:
+        - Habitaciones
+      summary: Buscar habitaciones disponibles
+      description: >
+        Retorna las habitaciones libres para un rango de fechas determinado (check-in y check-out),
+        garantizando la ausencia de traslapes con reservas confirmadas o pendientes de pago.
+      parameters:
+        - name: check_in_date
+          in: query
+          required: true
+          description: Fecha de ingreso en formato YYYY-MM-DD (debe ser hoy o fecha futura).
+          schema:
+            type: string
+            format: date
+            example: "2026-12-01"
+        - name: check_out_date
+          in: query
+          required: true
+          description: Fecha de salida en formato YYYY-MM-DD (estrictamente posterior al check-in).
+          schema:
+            type: string
+            format: date
+            example: "2026-12-05"
+        - name: hotel_id
+          in: query
+          required: false
+          description: ID del hotel específico.
+          schema:
+            type: integer
+            example: 1
+        - name: city
+          in: query
+          required: false
+          description: Ciudad de búsqueda.
+          schema:
+            type: string
+            example: "San Salvador"
+        - name: guests
+          in: query
+          required: false
+          description: Número de huéspedes requeridos (capacidad mínima).
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            example: 2
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [single, double, suite, deluxe]
+            example: "double"
+        - name: min_price
+          in: query
+          required: false
+          schema:
+            type: number
+            example: 50.00
+        - name: max_price
+          in: query
+          required: false
+          schema:
+            type: number
+            example: 250.00
+      responses:
+        '200':
+          description: Lista de habitaciones disponibles que cumplen los criterios.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomSearchSuccessResponse'
+        '422':
+          description: Error de validación en parámetros de consulta (fechas inválidas o en el pasado).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reservations:
+    post:
+      tags:
+        - Reservas
+      summary: Realizar reserva
+      description: >
+        Genera una reserva para un cliente y habitación en un intervalo de fechas.
+        Calcula el total de noches, valida atómicamente la disponibilidad y la deja
+        en estado 'pending_payment'.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReservationRequest'
+      responses:
+        '201':
+          description: Reserva creada con éxito en espera de pago.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationSuccessResponse'
+        '422':
+          description: Conflicto de disponibilidad (habitación ya reservada) o fechas erróneas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /payments:
+    post:
+      tags:
+        - Pagos
+      summary: Gestionar pagos
+      description: >
+        Procesa el pago de una reserva pendiente a través del Gateway desacoplado.
+        Si la transacción se autoriza, el estado de la reserva transiciona a 'confirmed'
+        y se dispara el evento de confirmación.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcessPaymentRequest'
+      responses:
+        '201':
+          description: Pago liquidado y reserva confirmada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentSuccessResponse'
+        '422':
+          description: Monto no coincide, reserva no encontrada o pago declinado por el gateway.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reservations/{identifier}/confirmation:
+    get:
+      tags:
+        - Confirmaciones
+      summary: Recibir confirmaciones de reserva
+      description: >
+        Obtiene el comprobante y voucher oficial de la reserva confirmada, incluyendo
+        desglose financiero, datos del huésped, hotel, habitación y recibo de pago con firma criptográfica.
+      parameters:
+        - name: identifier
+          in: path
+          required: true
+          description: ID numérico de la reserva o código alfanumérico (ej. RES-CONF-001).
+          schema:
+            type: string
+            example: "RES-CONF-001"
+      responses:
+        '200':
+          description: Comprobante formal de confirmación.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfirmationSuccessResponse'
+        '404':
+          description: Reserva no encontrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    RoomSearchSuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Habitaciones disponibles encontradas exitosamente."
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Room'
+
+    ReservationSuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Reserva creada exitosamente en estado pendiente de pago."
+        data:
+          $ref: '#/components/schemas/Reservation'
+
+    PaymentSuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Pago procesado exitosamente. La reserva ha sido confirmada."
+        data:
+          $ref: '#/components/schemas/Payment'
+
+    ConfirmationSuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Confirmación de reserva generada exitosamente."
+        data:
+          $ref: '#/components/schemas/ConfirmationVoucher'
+
+    CreateReservationRequest:
+      type: object
+      required:
+        - user_id
+        - room_id
+        - check_in_date
+        - check_out_date
+        - guests_count
+      properties:
+        user_id:
+          type: integer
+          example: 1
+        room_id:
+          type: integer
+          example: 2
+        check_in_date:
+          type: string
+          format: date
+          example: "2026-12-10"
+        check_out_date:
+          type: string
+          format: date
+          example: "2026-12-14"
+        guests_count:
+          type: integer
+          minimum: 1
+          example: 2
+        special_requests:
+          type: string
+          example: "Habitación en piso alto, no fumadores."
+
+    ProcessPaymentRequest:
+      type: object
+      required:
+        - reservation_id
+        - amount
+        - payment_method
+      properties:
+        reservation_id:
+          type: integer
+          example: 1
+        amount:
+          type: number
+          format: float
+          example: 520.00
+        payment_method:
+          type: string
+          enum: [credit_card, debit_card, paypal, bank_transfer]
+          example: "credit_card"
+        currency:
+          type: string
+          default: "USD"
+          example: "USD"
+        token:
+          type: string
+          description: Token de pasarela
+          example: "tok_visa_4242"
+        customer_email:
+          type: string
+          format: email
+          example: "carlos.mendoza@example.com"
+
+    Room:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 2
+        hotel_id:
+          type: integer
+          example: 1
+        room_number:
+          type: string
+          example: "102"
+        type:
+          type: string
+          enum: [single, double, suite, deluxe]
+          example: "double"
+        capacity:
+          type: integer
+          example: 2
+        price_per_night:
+          type: number
+          example: 130.00
+        description:
+          type: string
+          example: "Habitación doble con balcón y dos camas queen size."
+        status:
+          type: string
+          example: "available"
+
+    ConfirmationVoucher:
+      type: object
+      properties:
+        confirmation_status:
+          type: string
+          example: "CONFIRMADA"
+        confirmation_code:
+          type: string
+          example: "RES-CONF-001"
+        issued_at:
+          type: string
+          format: date-time
+        hotel:
+          type: object
+        client:
+          type: object
+        stay_details:
+          type: object
+        financial_breakdown:
+          type: object
+        payment_receipt:
+          type: object
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "La habitación no se encuentra disponible para las fechas seleccionadas."
